@@ -42,7 +42,7 @@ private:
         if (!h2) return h1;
 
         // Ensure h1 has the larger root (max-heap)
-        if (cmp(h2->data, h1->data)) {
+        if (cmp(h1->data, h2->data)) {
             std::swap(h1, h2);
         }
 
