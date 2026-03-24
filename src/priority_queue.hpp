@@ -194,6 +194,7 @@ public:
             root = merge(root, other.root);
             other.root = nullptr;
             num_elements += other.num_elements;
+            other.num_elements = 0;
         } catch (...) {
             // Restore both heaps on exception
             root = old_root;
