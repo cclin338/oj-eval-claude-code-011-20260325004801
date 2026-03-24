@@ -28,6 +28,7 @@ private:
     };
 
     Node *root = nullptr;
+    size_t num_elements = 0;
     Compare cmp;
 
     // Recursively get the npl (null path length) of a node
@@ -81,6 +82,7 @@ public:
 
     priority_queue(const priority_queue &other) : cmp(other.cmp) {
         root = copy_tree(other.root);
+        num_elements = other.num_elements;
     }
 
     ~priority_queue() {
@@ -93,6 +95,7 @@ public:
         // Save current state for exception safety
         Node *old_root = root;
         Compare old_cmp = cmp;
+        size_t old_num_elements = num_elements;
         Node *new_root = nullptr;
 
         try {
@@ -103,6 +106,7 @@ public:
             // Swap to new state
             root = new_root;
             cmp = new_cmp;
+            num_elements = other.num_elements;
 
             // Delete old state
             delete_tree(old_root);
@@ -111,6 +115,7 @@ public:
             if (new_root) delete_tree(new_root);
             root = old_root;
             cmp = old_cmp;
+            num_elements = old_num_elements;
             throw;
         }
 
@@ -130,13 +135,16 @@ public:
 
         // Save current state for exception safety
         Node *old_root = root;
+        size_t old_num_elements = num_elements;
 
         try {
             root = merge(root, new_heap);
+            num_elements++;
         } catch (...) {
             // Restore old state on exception
             delete new_heap;
             root = old_root;
+            num_elements = old_num_elements;
             throw;
         }
     }
@@ -148,29 +156,27 @@ public:
 
         // Save current state for exception safety
         Node *old_root = root;
+        size_t old_num_elements = num_elements;
 
         try {
             Node *left = root->left;
             Node *right = root->right;
 
             root = merge(left, right);
+            num_elements--;
 
             // Delete old root
             delete old_root;
         } catch (...) {
             // Restore old state on exception
             root = old_root;
+            num_elements = old_num_elements;
             throw;
         }
     }
 
     size_t size() const {
-        // Count nodes in the tree
-        std::function<size_t(Node*)> count_nodes = [&](Node *node) -> size_t {
-            if (!node) return 0;
-            return 1 + count_nodes(node->left) + count_nodes(node->right);
-        };
-        return count_nodes(root);
+        return num_elements;
     }
 
     bool empty() const {
@@ -181,14 +187,19 @@ public:
         // Save current state for exception safety
         Node *old_root = root;
         Node *other_root = other.root;
+        size_t old_num_elements = num_elements;
+        size_t other_num_elements = other.num_elements;
 
         try {
             root = merge(root, other.root);
             other.root = nullptr;
+            num_elements += other.num_elements;
         } catch (...) {
             // Restore both heaps on exception
             root = old_root;
             other.root = other_root;
+            num_elements = old_num_elements;
+            other.num_elements = other_num_elements;
             throw;
         }
     }
